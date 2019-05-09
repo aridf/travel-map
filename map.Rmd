@@ -60,11 +60,11 @@ worldmap <- borders("world", xlim = c(xmin, xmax), ylim = c(ymin, ymax), colour 
 
 ```{r message = FALSE}
 ggplot() + worldmap + 
-    geom_point(data = geos, aes(x = lon, y = lat), col = "#970027") + 
     geom_text_repel(data = geos, aes(x = lon, y = lat, label = airport), 
                     col = "black", size = 2, segment.color = NA) + 
     geom_curve(data = flights, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y), 
                col = "#b29e7d", size = .4) + 
+    geom_point(data = geos, aes(x = lon, y = lat), col = "#970027") + 
     theme_void()
 ```
 
