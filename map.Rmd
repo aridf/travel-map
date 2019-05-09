@@ -1,0 +1,70 @@
+---
+title: "travel-map"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load libraries
+```{r message = FALSE}
+library(tidyverse)
+library(ggmap)
+library(ggrepel)
+library(maps)
+```
+
+Load data
+```{r message = FALSE}
+flights <- read_csv("trips.csv")
+head(flights)
+```
+
+Get location data
+```{r message = FALSE}
+airports <- unique(c(flights$From, flights$To))
+geos <- geocode(airports) %>%
+  mutate(airport = airports) %>%
+  select(airport, lon, lat)
+head(geos)
+```
+```{r message = FALSE}
+d <- vector()
+for (i in 1:nrow(flights)) {
+    d <- which(paste(flights$From, flights$To) %in% paste(flights$To[i], flights$From[i]))
+    flights$From[d] <- "R"
+}
+flights <- flights %>%
+  filter(From != "R") %>%
+  select(From, To)
+
+```
+
+```{r}
+flights <- merge(flights, geos, by.x = "To", by.y = "airport")
+flights <- merge(flights, geos, by.x = "From", by.y = "airport")
+```
+
+
+```{r}
+xmin <- min(geos$lon) - 10
+xmax <- max(geos$lon) + 10
+ymin <- min(geos$lat) - 10
+ymax <- max(geos$lat) + 10
+
+worldmap <- borders("world", xlim = c(xmin, xmax), ylim = c(ymin, ymax), colour = "#efede1", fill = "#efede1") 
+
+```
+
+
+```{r message = FALSE}
+ggplot() + worldmap + 
+    geom_point(data = geos, aes(x = lon, y = lat), col = "#970027") + 
+    geom_text_repel(data = geos, aes(x = lon, y = lat, label = airport), 
+                    col = "black", size = 2, segment.color = NA) + 
+    geom_curve(data = flights, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y), 
+               col = "#b29e7d", size = .4) + 
+    theme_void()
+```
+
